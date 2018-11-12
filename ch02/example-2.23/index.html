@@ -1,0 +1,93 @@
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>example-2.22 - 圆角箭头 </title>
+  </head>
+  <body>
+    <!-- 贝塞尔曲线 -->
+    <!-- 
+      平方贝塞尔曲线（二次贝塞尔曲线），用三个点来定义：两个锚点及一个控制点
+      立方贝塞尔曲线（三次曲线），用四个点来定义：两个锚点及两个控制点
+    -->
+
+    <!-- 该例子是贝塞尔曲线应用，绘制圆角箭头 -->
+    <canvas id="myCanvas">
+      canvas not support
+    </canvas>
+  </body>
+  <script>
+  var $canvas = document.querySelector('#myCanvas'),
+      ctx = $canvas.getContext('2d'),
+      ARROW_MARGIN = 30,
+      POINT_RADIUS = 7;
+  $canvas.width = window.innerWidth
+  $canvas.height = 700
+  var points = [{
+        x: $canvas.width - ARROW_MARGIN,
+        y: $canvas.height - ARROW_MARGIN
+      }, {
+        x: $canvas.width - ARROW_MARGIN * 2,
+        y: $canvas.height - ARROW_MARGIN
+      }, {
+        x: POINT_RADIUS,
+        y: $canvas.height/2
+      }, {
+        x: ARROW_MARGIN,
+        y: $canvas.height/2 - ARROW_MARGIN
+      }, {
+        x: $canvas.width - ARROW_MARGIN,
+        y: ARROW_MARGIN
+      }, {
+        x: $canvas.width - ARROW_MARGIN,
+        y: ARROW_MARGIN * 2
+      }]
+
+  function drawPoint(x, y, strokeStyle, fillStyle) {
+    ctx.beginPath()
+    ctx.fillStyle = fillStyle
+    ctx.strokeStyle = strokeStyle
+    ctx.lineWidth = 0.5
+    ctx.arc(x, y, POINT_RADIUS, 0, Math.PI*2, false)
+
+    ctx.fill()
+    ctx.stroke()
+  }
+
+  function drawBezierPoints() {
+    var i,
+        strokeStyle,
+        fillStyle
+    
+    for(i=0; i<points.length; i++) {
+      fillStyle = i % 2 === 0 ? 'white' : 'blue',
+      strokeStyle = i % 2 === 0 ? 'blue': 'white'
+
+      drawPoint(points[i].x, points[i].y, strokeStyle, fillStyle)
+    }
+  }
+
+  function drawArrow() {
+    ctx.strokeStyle = 'white'
+    ctx.fillStyle = 'cornflowerblue'
+    ctx.moveTo($canvas.width - ARROW_MARGIN, ARROW_MARGIN * 2)
+
+    ctx.lineTo($canvas.width - ARROW_MARGIN, $canvas.height - ARROW_MARGIN * 2)
+    ctx.quadraticCurveTo(points[0].x, points[0].y, points[1].x, points[1].y)
+    ctx.lineTo(ARROW_MARGIN, $canvas.height/2 + ARROW_MARGIN)
+    ctx.quadraticCurveTo(points[2].x, points[2].y, points[3].x, points[3].y)
+
+    ctx.lineTo($canvas.width - ARROW_MARGIN*2, ARROW_MARGIN)
+
+    ctx.quadraticCurveTo(points[4].x, points[4].y, points[5].x, points[5].y)
+
+    ctx.fill()
+    ctx.stroke()
+  }
+
+  drawArrow()
+  drawBezierPoints()
+  
+  
+  </script>
+  </html>

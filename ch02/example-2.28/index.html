@@ -4,10 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>example-2.15</title>
+  <title>example-2.28 多边形拖拽</title>
 </head>
 <body>
-  <!-- 橡皮筋式画图 -->
+  <!-- 多边形拖拽 -->
   <canvas id="myCanvas">
     canvas not support
   </canvas>
@@ -20,28 +20,126 @@
       <option value="orange">orange</option>
       <option value="cornflowerblue">cornflowerblue</option>
       <option value="goldenrod">goldenrod</option>
-      <option value="navy">navy</option>
+      <option value="16">navy</option>
       <option value="purple">purple</option>
     </select>
+    fill color:
+    <select id="fillStyle">
+      <option value="red" selected>red</option>
+      <option value="green">green</option>
+      <option value="blue">blue</option>
+      <option value="orange">orange</option>
+      <option value="cornflowerblue">cornflowerblue</option>
+      <option value="goldenrod">goldenrod</option>
+      <option value="16">navy</option>
+      <option value="purple">purple</option>
+    </select>
+    sidesSelect:
+    <select id="sidesSelect">
+      <option value="4" selected>4</option>
+      <option value="6">6</option>
+      <option value="8">8</option>
+      <option value="10">10</option>
+      <option value="12">12</option>
+      <option value="14">14</option>
+      <option value="16">16</option>
+      <option value="3">3</option>
+    </select>
   </div>
-  guidewires:
   <input id="guidewireCheckbox" type="checkbox"/>
   <input id="eraseAllButton" type="button" value="erase all" />
+  <input type="checkbox" id="fillCheckbox"/>
+  <input type="checkbox" id="editCheckbox"/>
 </body>
 <script>
 var $canvas = document.querySelector('#myCanvas'),
     ctx = $canvas.getContext('2d'),
     $eraseAllButton = document.querySelector('#eraseAllButton'),
     $strokeStyle = document.querySelector('#strokeStyle'),
+    $fillStyle = document.querySelector('#fillStyle'),
     $guidewireCheckbox = document.querySelector('#guidewireCheckbox'),
+    $fillCheckbox = document.querySelector('#fillCheckbox'),
+    $editCheckbox = document.querySelector('#editCheckbox'),
+    $sidesSelect = document.querySelector('#sidesSelect'),
+
     drawingSurfaceImageData,
     mousedown = {},
     rubberbandRect = {},
     dragging = false,
-    guidewires = $guidewireCheckbox.checked
+    draggingOffsetX,
+    draggingOffsetY,
+
+    sides = 8,
+    startAngle = 0,
+
+    guidewires = $guidewireCheckbox.checked,
+    editing = false,
+    polygons = []
 
 $canvas.width = window.innerWidth
 $canvas.height = 700
+// 多边形对象
+var Point = function(x,y) {
+  this.x = x
+  this.y = y
+}
+
+var Polygon = function(centerX, centerY, radius, sides, startAngle,
+  strokeStyle, fillStyle, filled) {
+    this.x = centerX
+    this.y = centerY
+    this.sides = sides
+    this.startAngle = startAngle
+    this.strokeStyle = strokeStyle
+    this.fillStyle = fillStyle
+    this.filled = filled
+  }
+
+  Polygon.prototype = {
+    getPoints: function() {
+      var points = [],
+        angle = this.startAngle || 0
+
+      
+      for(var i=0; i<this.sides; i++) {
+        this.points.push(new Point(this.x+this.radius*Math.cos(angle),this.y-this.radius*Math.sin(angle)))
+        angle += 2*Math.PI/this.sides
+      }
+      return points
+    },
+
+    createPath: function(ctx) {
+      var points = this.getPoints()
+
+      ctx.beginPath()
+      ctx.moveTo(points[0].x, points[0].y)
+
+      for(var i=0; i<points.length; i++) {
+        ctx.lineTo(points[i].x, points[i].y)
+      }
+
+      ctx.closePath()
+    },
+    stroke: function(ctx) {
+      ctx.save()
+      this.createPath(ctx)
+      ctx.strokeStyle = this.strokeStyle
+      
+      ctx.stroke()
+      ctx.restore()
+    },
+    fill: function(ctx) {
+      ctx.save()
+      this.createPath(ctx)
+      ctx.fillStyle = this.fillStyle
+      ctx.fill()
+      ctx.restore()
+    },
+    move: function(x, y) {
+      this.x = x
+      this.y = y
+    }
+  }
 
 function drawGrid(color, stepx, stepy) {
   ctx.strokeStyle = color
@@ -78,6 +176,16 @@ function restoreDrawingSurface () {
   ctx.putImageData(drawingSurfaceImageData, 0, 0)
 }
 
+function drawPolygon(polygon) {
+  ctx.beginPath()
+  polygon.createPath(ctx)
+  polygon.stroke(ctx)
+
+  if($fillCheckbox.checked) {
+    polygon.fill(ctx)
+  }
+}
+
 function updateRubberbandRectangle(loc) {
   rubberbandRect.width = Math.abs(loc.x - mousedown.x)
   rubberbandRect.height = Math.abs(loc.y - mousedown.y)
@@ -96,15 +204,22 @@ function updateRubberbandRectangle(loc) {
 }
 
 function drawRubberbandShape(loc) {
-  ctx.beginPath()
-  ctx.moveTo(mousedown.x, mousedown.y)
-  ctx.lineTo(loc.x, loc.y)
-  ctx.stroke()
+  var polygon = new Polygon(mousedown.x, mousedown.y, rubberbandRect.width,
+  parseInt($sidesSelect.value), (Math.PI/180)*parseInt($startAngleSelect.value),
+  ctx.strokeStyle,
+  ctx.fillStyle,
+  fillCheckbox.checked)
+
+  drawPolygon(polygon)
+
+  if (!draggin) {
+    polygons.push(polygon)
+  }
 }
 
 function updateRubberband(loc) {
   updateRubberbandRectangle(loc)
-  drawRubberbandShape(loc)
+  drawRubberbandShape(loc, sides, startAngle)
 }
 
 function drawHorizontalLine(y) {
@@ -129,6 +244,28 @@ function drawGuidewires(x, y) {
   drawVerticalLine(x)
   drawHorizontalLine(y)
   ctx.restore()
+}
+
+function drawPolygons() {
+  polygons.forEach(function(polygon) {
+    drawPolygon(polygon)
+  })
+}
+
+function startDraggin(loc) {
+  saveDrawingSurface()
+  mousedown.x = loc.x
+  mousedown.y = loc.y
+}
+
+function startEditing() {
+  $canvas.style.cursor = 'pointer'
+  editing = true
+}
+
+function stopEditing() {
+  $canvas.style.cursor = 'crosshair'
+  editing = false
 }
 
 $canvas.onmousedown = function(e) {

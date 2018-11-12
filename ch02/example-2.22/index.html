@@ -1,0 +1,41 @@
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>example-2.22 - 贝塞尔曲线 </title>
+  </head>
+  <body>
+    <!-- 贝塞尔曲线 -->
+    <!-- 
+      平方贝塞尔曲线（二次贝塞尔曲线），用三个点来定义：两个锚点及一个控制点
+      立方贝塞尔曲线（三次曲线），用四个点来定义：两个锚点及两个控制点
+    -->
+
+    <!-- 该例子绘制二次贝塞尔曲线 -->
+    <canvas id="myCanvas">
+      canvas not support
+    </canvas>
+  </body>
+  <script>
+  var $canvas = document.querySelector('#myCanvas'),
+      ctx = $canvas.getContext('2d');
+
+  $canvas.width = window.innerWidth
+  $canvas.height = 700
+
+  ctx.strokeStyle = 'red'
+  ctx.lineWidth = '5px'
+  ctx.fillStyle = 'orange'
+  
+  ctx.beginPath()
+  ctx.moveTo(150, 150)
+  ctx.quadraticCurveTo(190, 400, 400, 150)
+  ctx.quadraticCurveTo(190, 250, 210, 160.5)
+  ctx.quadraticCurveTo(180, 60, 150, 150)
+  ctx.stroke()
+
+  ctx.fill()
+  
+  
+  </script>
+  </html>

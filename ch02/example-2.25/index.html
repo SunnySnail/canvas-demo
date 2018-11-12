@@ -1,0 +1,66 @@
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>example-2.25 - 多边形 </title>
+  </head>
+  <body>
+    <!-- 绘制多边形 -->
+    <canvas id="myCanvas">
+      canvas not support
+    </canvas>
+  </body>
+  <script>
+  var $canvas = document.querySelector('#myCanvas'),
+      ctx = $canvas.getContext('2d');
+  $canvas.width = window.innerWidth
+  $canvas.height = 700
+
+  var mousedown = {},
+      fillStyle = 'green',
+      strokeStyle = 'yellow',
+      Point = function(x, y) {
+        this.x = x
+        this.y = y
+      }
+
+  function getPolygonPoints(centerX, centerY, radius, sides, startAngle) {
+    var points = [],
+        angle = startAngle || 0
+
+    for(var i=0; i<sides; i++) {
+      points.push(new Point(centerX+radius*Math.cos(angle), centerY-radius*Math.sin(angle)))
+
+      angle += 2*Math.PI/sides
+    }
+
+    return points
+  }
+
+  function createPolygonPath(centerX, centerY, radius, sides, startAngle) {
+    var points = getPolygonPoints(centerX, centerY, radius, sides, startAngle)
+
+    ctx.beginPath()
+    ctx.moveTo(points[0].x, points[0].y)
+    ctx.strokeStyle = 'red'
+
+    for(var i=1; i<points.length; i++) {
+      ctx.lineTo(points[i].x, points[i].y)
+    }
+
+    ctx.closePath()
+  }
+
+  function drawRubberbandShape(radius, sides, startAngle) {
+    createPolygonPath(mousedown.x, mousedown.y, radius, sides, startAngle)
+
+    ctx.stroke()
+  }
+
+  $canvas.onmousedown = function(e) {
+    mousedown.x = e.clientX
+    mousedown.y = e.clientY
+    drawRubberbandShape(100, 12, 0)
+  }
+  </script>
+  </html>
