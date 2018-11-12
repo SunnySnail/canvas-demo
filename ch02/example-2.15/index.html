@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>example-2.15</title>
+</head>
+<body>
+  <canvas id="myCanvas">
+    canvas not support
+  </canvas>
+  <div id="controls">
+    stroke color:
+    <select id="strokeStyle">
+      <option value="red" selected>red</option>
+      <option value="green">green</option>
+      <option value="blue">blue</option>
+      <option value="orange">orange</option>
+      <option value="cornflowerblue">cornflowerblue</option>
+      <option value="goldenrod">goldenrod</option>
+      <option value="navy">navy</option>
+      <option value="purple">purple</option>
+    </select>
+  </div>
+  guidewires:
+  <input id="guidewireCheckbox" type="checkbox"/>
+  <input id="eraseAllButton" type="button" value="erase all" />
+</body>
+<script>
+var $canvas = document.querySelector('#myCanvas'),
+    ctx = $canvas.getContext('2d'),
+    $eraseAllButton = document.querySelector('#eraseAllButton'),
+    $strokeStyle = document.querySelector('#strokeStyle'),
+    $guidewireCheckbox = document.querySelector('#guidewireCheckbox'),
+    drawingSurfaceImageData,
+    mousedown = {},
+    rubberbandRect = {},
+    dragging = false,
+    guidewires = $guidewireCheckbox.checked
+
+$canvas.width = window.innerWidth
+$canvas.height = 700
+
+function drawGrid(color, stepx, stepy) {
+  ctx.strokeStyle = color
+  ctx.lineWidth = 0.5
+
+  for (var i = stepx + 0.5; i<$canvas.width; i += stepx) {
+    ctx.beginPath()
+    ctx.moveTo(i, 0)
+    ctx.lineTo(i, $canvas.height)
+    ctx.stroke()
+  }
+
+  for (var i = stepy + 0.5; i<$canvas.height; i += stepy) {
+    ctx.beginPath()
+    ctx.moveTo(0, i)
+    ctx.lineTo($canvas.width, i)
+    ctx.stroke()
+  }
+}
+
+function windowToCanvas(x, y) {
+  var bbox = $canvas.getBoundingClientRect()
+  return {
+    x: x - bbox.left,
+    y: y - bbox.top
+  }
+}
+
+function saveDrawingSurface () {
+  drawingSurfaceImageData = ctx.getImageData(0,0,$canvas.width,$canvas.height)
+}
+
+function restoreDrawingSurface () {
+  ctx.putImageData(drawingSurfaceImageData, 0, 0)
+}
+
+function updateRubberbandRectangle(loc) {
+  rubberbandRect.width = Math.abs(loc.x - mousedown.x)
+  rubberbandRect.height = Math.abs(loc.y - mousedown.y)
+
+  if (loc.x > mousedown.x) {
+    rubberbandRect.left = mousedown.x
+  } else {
+    rubberbandRect.left = loc.x
+  }
+
+  if (loc.y > mousedown.y) {
+    rubberbandRect.top = mousedown.y
+  } else {
+    rubberbandRect.top = loc.y
+  }
+}
+
+function drawRubberbandShape(loc) {
+  ctx.beginPath()
+  ctx.moveTo(mousedown.x, mousedown.y)
+  ctx.lineTo(loc.x, loc.y)
+  ctx.stroke()
+}
+
+function updateRubberband(loc) {
+  updateRubberbandRectangle(loc)
+  drawRubberbandShape(loc)
+}
+
+function drawHorizontalLine(y) {
+  ctx.beginPath()
+  ctx.moveTo(0, y+0.5)
+  ctx.lineTo($canvas.width, y+0.5)
+  ctx.stroke()
+}
+
+function drawVerticalLine(x) {
+  ctx.beginPath()
+  ctx.moveTo(x+0.5,0)
+  ctx.lineTo(x+0.5, $canvas.height)
+  ctx.stroke()
+}
+
+function drawGuidewires(x, y) {
+  ctx.save()
+  ctx.strokeStyle = 'rgba(0,0,230,0.4)'
+  ctx.lineWidth = 0.5
+
+  drawVerticalLine(x)
+  drawHorizontalLine(y)
+  ctx.restore()
+}
+
+$canvas.onmousedown = function(e) {
+  var loc = windowToCanvas(e.clientX, e.clientY)
+
+  e.preventDefault()
+  /////////// very important //////////////
+  saveDrawingSurface()
+  mousedown.x = loc.x
+  mousedown.y = loc.y
+  dragging = true
+}
+
+$canvas.onmousemove = function(e) {
+  var loc
+
+  if (dragging) {
+    e.preventDefault()
+
+    loc = windowToCanvas(e.clientX, e.clientY)
+    /////////// very important //////////////
+    restoreDrawingSurface()
+
+    updateRubberband(loc)
+
+    if (guidewires) {
+      drawGuidewires(loc.x, loc.y)
+    }
+  }
+}
+
+$canvas.onmouseup = function(e) {
+  loc = windowToCanvas(e.clientX, e.clientY)
+  /////////// very important //////////////
+  restoreDrawingSurface()
+  updateRubberband(loc)
+  dragging = true
+}
+
+$canvas.ondblclick = function(e) {
+  console.log('double click')
+  dragging = false
+}
+
+$eraseAllButton.onclick = function(e) {
+  ctx.clearRect(0,0,$canvas.width, $canvas.height)
+  drawGrid('lightgray', 10, 10)
+  saveDrawingSurface()
+}
+
+$strokeStyle.onchange = function(e) {
+  ctx.strokeStyle = $strokeStyle.value
+}
+
+$guidewireCheckbox.onchange = function(e) {
+  guidewires = $guidewireCheckbox.checked
+}
+
+ctx.strokeStyle = $strokeStyle.value
+drawGrid('lightgray', 10, 10)
+</script>
+</html>

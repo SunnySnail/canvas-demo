@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>example-2.17 - 虚线</title>
+</head>
+<body>
+  <canvas id="myCanvas">
+    canvas not support
+  </canvas>
+</body>
+<script>
+var $canvas = document.querySelector('#myCanvas'),
+    ctx = $canvas.getContext('2d')
+
+$canvas.width = window.innerWidth
+$canvas.height = 700
+
+ctx.setLineDash([5,3])
+ctx.lineWidth = 2
+ctx.strokeStyle = 'navy'
+
+ctx.moveTo(4,3)
+ctx.lineTo(4, 1000)
+ctx.stroke()
+</script>
+</html>

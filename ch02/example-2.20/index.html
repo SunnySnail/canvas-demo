@@ -1,0 +1,54 @@
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>example-2.20</title>
+</head>
+<body>
+  <canvas id="myCanvas">
+    canvas not support
+  </canvas>
+</body>
+<script>
+var $canvas = document.querySelector('#myCanvas'),
+    ctx = $canvas.getContext('2d')
+
+$canvas.width = window.innerWidth
+$canvas.height = 700
+
+function roundedRect(cornerX, cornerY, width, height, cornerRadius) {
+  if (width > 0) {
+    ctx.moveTo(cornerX + cornerRadius, cornerY)
+  } else {
+    ctx.moveTo(cornerX - cornerRadius, cornerY)
+  }
+
+  ctx.arcTo(cornerX + width, cornerY, cornerX + width, cornerY + height, cornerRadius)
+
+  ctx.arcTo(cornerX + width, cornerY + height, cornerX, cornerY + height, cornerRadius)
+
+  ctx.arcTo(cornerX, cornerY + height, cornerX, cornerY, cornerRadius)
+
+  // if (width > 0) {
+    ctx.arcTo(cornerX, cornerY, cornerX + cornerRadius, cornerY, cornerRadius)
+  // } else {
+  //   ctx.arcTo(cornerX, cornerY, cornerX - cornerRadius, cornerY, cornerRadius)
+  // }
+}
+
+function drawRoundedRect(strokeStyle, fillStyle, cornerX, cornerY, width, height, cornerRadius) {
+  ctx.beginPath()
+
+  roundedRect(cornerX, cornerY, width, height, cornerRadius)
+
+  ctx.strokeStyle = strokeStyle
+  ctx.fillStyle = fillStyle
+  
+  ctx.stroke()
+  ctx.fill()
+}
+
+drawRoundedRect('blue', 'yellow', 50, 40, 100, 100, 10)
+
+</script>
+</html>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>example-2.8</title>
+</head>
+<body>
+  <canvas id="myCanvas">
+    canvas not support
+  </canvas>
+</body>
+<script>
+var $canvas = document.querySelector('#myCanvas')
+var ctx = $canvas.getContext('2d')
+
+$canvas.width = window.innerWidth
+$canvas.height = window.innerHeight
+
+var LINE_WIDTH = 1
+var SHADOW_STYLE = 'blue'
+var STROKE_STYLE = 'rgba(0,0,255,0.6)'
+var SHADOW_OFFSET = 5
+var SHADOW_BLUR = 20
+var RADIUS = 60
+
+function setEraserAttributes () {
+  ctx.lineWidth = LINE_WIDTH
+  ctx.shadowColor = SHADOW_STYLE
+  ctx.shadowOffsetX = SHADOW_OFFSET
+  ctx.shadowOffsetY = SHADOW_OFFSET
+  ctx.shadowBlur = SHADOW_BLUR
+  ctx.strokeStyle = STROKE_STYLE
+}
+
+function drawEraser (loc) {
+  ctx.save()
+  setEraserAttributes()
+
+  ctx.beginPath()
+  ctx.arc(loc.x, loc.y, RADIUS, 0, Math.PI*2, false)
+
+  ctx.clip()
+  ctx.stroke()
+
+  ctx.restore()
+}
+
+drawEraser({
+  x: 100,
+  y: 100
+})
+</script>
+</html>
