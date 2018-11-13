@@ -45,11 +45,22 @@
       <option value="16">16</option>
       <option value="3">3</option>
     </select>
+    startAngleSelect:
+    <select id="startAngleSelect">
+      <option value="4" selected>4</option>
+      <option value="6">6</option>
+      <option value="8">8</option>
+      <option value="10">10</option>
+      <option value="12">12</option>
+      <option value="14">14</option>
+      <option value="16">16</option>
+      <option value="3">3</option>
+    </select>
   </div>
   <input id="guidewireCheckbox" type="checkbox"/>
   <input id="eraseAllButton" type="button" value="erase all" />
-  <input type="checkbox" id="fillCheckbox"/>
-  <input type="checkbox" id="editCheckbox"/>
+  <input type="checkbox" id="fillCheckbox" />fill
+  <input type="checkbox" id="editCheckbox"/>edit
 </body>
 <script>
 var $canvas = document.querySelector('#myCanvas'),
@@ -61,6 +72,7 @@ var $canvas = document.querySelector('#myCanvas'),
     $fillCheckbox = document.querySelector('#fillCheckbox'),
     $editCheckbox = document.querySelector('#editCheckbox'),
     $sidesSelect = document.querySelector('#sidesSelect'),
+    $startAngleSelect = document.querySelector('#startAngleSelect'),
 
     drawingSurfaceImageData,
     mousedown = {},
@@ -69,7 +81,7 @@ var $canvas = document.querySelector('#myCanvas'),
     draggingOffsetX,
     draggingOffsetY,
 
-    sides = 8,
+    sides = 4,
     startAngle = 0,
 
     guidewires = $guidewireCheckbox.checked,
@@ -93,16 +105,15 @@ var Polygon = function(centerX, centerY, radius, sides, startAngle,
     this.strokeStyle = strokeStyle
     this.fillStyle = fillStyle
     this.filled = filled
+    this.radius = radius
   }
 
   Polygon.prototype = {
     getPoints: function() {
       var points = [],
         angle = this.startAngle || 0
-
-      
       for(var i=0; i<this.sides; i++) {
-        this.points.push(new Point(this.x+this.radius*Math.cos(angle),this.y-this.radius*Math.sin(angle)))
+        points.push(new Point(this.x+this.radius*Math.cos(angle),this.y-this.radius*Math.sin(angle)))
         angle += 2*Math.PI/this.sides
       }
       return points
@@ -212,7 +223,7 @@ function drawRubberbandShape(loc) {
 
   drawPolygon(polygon)
 
-  if (!draggin) {
+  if (!dragging) {
     polygons.push(polygon)
   }
 }
@@ -252,7 +263,7 @@ function drawPolygons() {
   })
 }
 
-function startDraggin(loc) {
+function startDragging(loc) {
   saveDrawingSurface()
   mousedown.x = loc.x
   mousedown.y = loc.y
@@ -276,25 +287,41 @@ $canvas.onmousedown = function(e) {
   if(editing) {
     polygons.forEach(function(polygon) {
       polygon.createPath(ctx)
-    })
-  }
 
+      if (ctx.isPointInPath(loc.x, loc.y)) {
+        startDragging(loc)
+        dragging = polygon
+        draggingOffsetX = loc.x - polygon.x
+        draggingOffsetY = loc.y - polygon.y
+        return
+      }
+    })
+  }else {
+    startDragging(loc)
+    dragging = true
+  }
 }
 
 $canvas.onmousemove = function(e) {
-  var loc
+  var loc = windowToCanvas(e.clientX, e.clientY)
 
-  if (dragging) {
-    e.preventDefault()
+  e.preventDefault()
 
-    loc = windowToCanvas(e.clientX, e.clientY)
-    /////////// very important //////////////
-    restoreDrawingSurface()
+  if (editing && dragging) {
+    dragging.x = loc.x - draggingOffsetX
+    dragging.y = loc.y - draggingOffsetY
+    
+    ctx.clearRect(0,0,$canvas.width,$canvas.height)
+    drawGrid('lightgray', 10, 10)
+    drawPolygons()
+  } else {
+    if (dragging) {
+      restoreDrawingSurface()
+      updateRubberband(loc, sides, startAngle)
 
-    updateRubberband(loc)
-
-    if (guidewires) {
-      drawGuidewires(loc.x, loc.y)
+      if (guidewires) {
+        drawGuidewires(mousedown.x, mousedown.y)
+      }
     }
   }
 }
@@ -302,9 +329,14 @@ $canvas.onmousemove = function(e) {
 $canvas.onmouseup = function(e) {
   loc = windowToCanvas(e.clientX, e.clientY)
   /////////// very important //////////////
-  restoreDrawingSurface()
-  updateRubberband(loc)
-  dragging = true
+  dragging = false
+
+  if(editing) {
+    
+  } else {
+    restoreDrawingSurface()
+    updateRubberband(loc)
+  }
 }
 
 $canvas.ondblclick = function(e) {
@@ -322,8 +354,16 @@ $strokeStyle.onchange = function(e) {
   ctx.strokeStyle = $strokeStyle.value
 }
 
+$fillStyle.onchange = function(e) {
+  ctx.fillStyle = $fillStyle.value
+}
+
 $guidewireCheckbox.onchange = function(e) {
   guidewires = $guidewireCheckbox.checked
+}
+
+$editCheckbox.onchange = function(e) {
+  editing = $editCheckbox.checked
 }
 
 ctx.strokeStyle = $strokeStyle.value
